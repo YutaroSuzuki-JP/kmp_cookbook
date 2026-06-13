@@ -81,6 +81,14 @@ fun CatalogListScreen(
                 icon = Icons.Default.GridView,
                 iconBgColor = Color(0xFF42A5F5), // Blue
                 tags = listOf("StaggeredGrid", "Adaptive UI", "Dynamic Columns")
+            ),
+            CatalogItem(
+                id = Screen.KmpAdvancedShowcase,
+                title = "Advanced KMP Features",
+                description = "ローカル設定の保存、WebViewと双方向通信、広告（AdMob）表示、アプリ内課金（IAP）の統合デモ。",
+                icon = Icons.Default.Settings,
+                iconBgColor = Color(0xFFFF9800), // Orange
+                tags = listOf("AppSettings", "JS Bridge", "AdMob Banner", "StoreKit 2")
             )
         )
     }

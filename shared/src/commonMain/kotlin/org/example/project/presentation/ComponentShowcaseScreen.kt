@@ -15,6 +15,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -22,6 +24,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import org.example.project.theme.BrandTheme
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
@@ -145,33 +157,16 @@ fun ComponentShowcaseScreen(
                                 .blur(25.dp)
                         )
 
-                        // Translucent Glass Card Overlaid
-                        Box(
-                            modifier = Modifier
-                                .fillMaxSize(0.85f)
-                                .clip(RoundedCornerShape(16.dp))
-                                .background(
-                                    Brush.linearGradient(
-                                        colors = listOf(
-                                            Color.White.copy(alpha = 0.12f),
-                                            Color.White.copy(alpha = 0.02f)
-                                        )
-                                    )
-                                )
-                                .border(
-                                    width = 1.dp,
-                                    brush = Brush.linearGradient(
-                                        colors = listOf(
-                                            Color.White.copy(alpha = 0.25f),
-                                            Color.White.copy(alpha = 0.05f)
-                                        )
-                                    ),
-                                    shape = RoundedCornerShape(16.dp)
-                                )
-                                .padding(16.dp),
-                            contentAlignment = Alignment.Center
+                        // Translucent Glass Card Overlaid (using reusable GlassCard component)
+                        GlassCard(
+                            modifier = Modifier.fillMaxSize(0.85f),
+                            shape = RoundedCornerShape(16.dp)
                         ) {
-                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Column(
+                                modifier = Modifier.fillMaxSize(),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.Center
+                            ) {
                                 Text(
                                     "GLASSMORPHIC CARD",
                                     fontSize = 13.sp,
@@ -296,6 +291,147 @@ fun ComponentShowcaseScreen(
                     )
                 }
             }
+
+            // Section 4: Login Form Validation & Keyboard Flow
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(containerColor = Color(0x1F2C2C3C)),
+                border = BorderStroke(1.dp, Color.White.copy(alpha = 0.05f))
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Text(
+                        text = "4. Reactive Input Form & Focus Flow",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = "一方向データフロー(UDF)によるリアクティブ検証と、Next/Doneによるキーボードフォーカス制御の例です。",
+                        fontSize = 12.sp,
+                        color = Color.LightGray
+                    )
+                    Spacer(modifier = Modifier.height(20.dp))
+
+                    val formState = remember { LoginFormState() }
+                    val focusManager = LocalFocusManager.current
+                    val keyboardController = LocalSoftwareKeyboardController.current
+                    val passwordFocusRequester = remember { FocusRequester() }
+                    var passwordVisible by remember { mutableStateOf(false) }
+
+                    // Email Input
+                    var emailTouched by remember { mutableStateOf(false) }
+                    val isEmailError = emailTouched && formState.email.isNotEmpty() && !formState.isEmailValid
+                    OutlinedTextField(
+                        value = formState.email,
+                        onValueChange = {
+                            formState.email = it
+                            emailTouched = true
+                        },
+                        label = { Text("メールアドレス") },
+                        isError = isEmailError,
+                        supportingText = {
+                            if (isEmailError) {
+                                Text("有効なメールアドレスを入力してください", color = MaterialTheme.colorScheme.error)
+                            }
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = Color(0xFFAB47BC),
+                            unfocusedBorderColor = Color.DarkGray,
+                            errorBorderColor = MaterialTheme.colorScheme.error
+                        ),
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Email,
+                            imeAction = ImeAction.Next
+                        ),
+                        keyboardActions = KeyboardActions(
+                            onNext = { passwordFocusRequester.requestFocus() }
+                        ),
+                        singleLine = true
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    // Password Input
+                    var passwordTouched by remember { mutableStateOf(false) }
+                    val isPasswordError = passwordTouched && formState.password.isNotEmpty() && !formState.isPasswordValid
+                    OutlinedTextField(
+                        value = formState.password,
+                        onValueChange = {
+                            formState.password = it
+                            passwordTouched = true
+                        },
+                        label = { Text("パスワード") },
+                        visualTransformation = if (passwordVisible) androidx.compose.ui.text.input.VisualTransformation.None else PasswordVisualTransformation(),
+                        trailingIcon = {
+                            val image = if (passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff
+                            IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                                Icon(image, contentDescription = "Toggle password visibility", tint = Color.Gray)
+                            }
+                        },
+                        isError = isPasswordError,
+                        supportingText = {
+                            if (isPasswordError) {
+                                Text("パスワードは8文字以上必要です", color = MaterialTheme.colorScheme.error)
+                            }
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .focusRequester(passwordFocusRequester),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = Color(0xFFAB47BC),
+                            unfocusedBorderColor = Color.DarkGray,
+                            errorBorderColor = MaterialTheme.colorScheme.error
+                        ),
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Password,
+                            imeAction = ImeAction.Done
+                        ),
+                        keyboardActions = KeyboardActions(
+                            onDone = {
+                                focusManager.clearFocus()
+                                keyboardController?.hide()
+                            }
+                        ),
+                        singleLine = true
+                    )
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    var submittedMessage by remember { mutableStateOf("") }
+                    if (submittedMessage.isNotEmpty()) {
+                        Text(
+                            text = submittedMessage,
+                            color = Color(0xFF26A69A),
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 12.sp,
+                            modifier = Modifier.padding(bottom = 8.dp)
+                        )
+                    }
+
+                    // Submit button
+                    Button(
+                        onClick = {
+                            focusManager.clearFocus()
+                            keyboardController?.hide()
+                            submittedMessage = "送信完了: ${formState.email}"
+                        },
+                        enabled = formState.isFormValid,
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = BrandTheme.colorScheme.goldAccent,
+                            disabledContainerColor = Color.Gray.copy(alpha = 0.3f)
+                        ),
+                        shape = RoundedCornerShape(12.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text("ログイン", color = Color.White, fontWeight = FontWeight.Bold)
+                    }
+                }
+            }
         }
     }
 
@@ -364,5 +500,20 @@ fun ComponentShowcaseScreen(
                 }
             }
         }
+    }
+}
+
+class LoginFormState {
+    var email by mutableStateOf("")
+    var password by mutableStateOf("")
+    val isEmailValid: Boolean by derivedStateOf {
+        val emailRegex = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$".toRegex()
+        email.matches(emailRegex)
+    }
+    val isPasswordValid: Boolean by derivedStateOf {
+        password.length >= 8
+    }
+    val isFormValid: Boolean by derivedStateOf {
+        isEmailValid && isPasswordValid
     }
 }

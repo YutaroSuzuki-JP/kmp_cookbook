@@ -7,4 +7,5 @@ sealed interface Screen {
     data object CanvasShowcase : Screen
     data object ComponentShowcase : Screen
     data object LayoutShowcase : Screen
+    data object KmpAdvancedShowcase : Screen
 }

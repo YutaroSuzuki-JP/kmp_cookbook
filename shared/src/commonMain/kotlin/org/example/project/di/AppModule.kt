@@ -8,6 +8,10 @@ import org.example.project.domain.usecase.ToggleFavoriteArtworkUseCase
 import org.example.project.domain.repository.ArtworkRepository
 import org.example.project.infra.network.MetApiImpl
 import org.example.project.presentation.MainViewModel
+import org.example.project.ads.AdManager
+import org.example.project.ads.MockAdManager
+import org.example.project.billing.BillingManager
+import org.example.project.billing.MockBillingManager
 import org.koin.dsl.module
 import org.koin.core.module.dsl.viewModel
 import io.ktor.client.HttpClient
@@ -38,12 +42,15 @@ val domainModule = module {
 
 val presentationModule = module {
     viewModel { MainViewModel(get(), get(), get()) }
+    single<BillingManager> { MockBillingManager() }
+    single<AdManager> { MockAdManager() }
 }
 
 val appModule = listOf(
     networkModule,
     platformNetworkModule,
     databaseModule,
+    storageModule,
     repositoryModule,
     domainModule,
     presentationModule

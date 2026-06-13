@@ -46,6 +46,9 @@ fun MainScreen(viewModel: MainViewModel = koinViewModel()) {
             Screen.LayoutShowcase -> LayoutShowcaseScreen(
                 onBack = { currentScreen = Screen.CatalogList }
             )
+            Screen.KmpAdvancedShowcase -> KmpAdvancedShowcaseScreen(
+                onBack = { currentScreen = Screen.CatalogList }
+            )
         }
     }
 }

@@ -29,6 +29,32 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.unit.Dp
+
+@Composable
+fun rememberShimmerBrush(): Brush {
+    val transition = rememberInfiniteTransition(label = "shimmer")
+    val translateAnim by transition.animateFloat(
+        initialValue = 0f,
+        targetValue = 1000f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = 1200, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "shimmerTranslation"
+    )
+    val shimmerColors = listOf(
+        Color(0xFF2C2C3C),
+        Color(0xFF3E3E52),
+        Color(0xFF2C2C3C)
+    )
+    return Brush.linearGradient(
+        colors = shimmerColors,
+        start = Offset(x = translateAnim - 300f, y = translateAnim - 300f),
+        end = Offset(x = translateAnim, y = translateAnim)
+    )
+}
 
 @Composable
 fun AnimationShowcaseScreen(
@@ -392,6 +418,66 @@ fun AnimationShowcaseScreen(
                                     lineHeight = 16.sp
                                 )
                             }
+                        }
+                    }
+                }
+            }
+
+            // Section 4: Shimmer Loading Skeleton Effect
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(containerColor = Color(0x1F2C2C3C)),
+                border = BorderStroke(1.dp, Color.White.copy(alpha = 0.05f))
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Text(
+                        text = "4. Infinite Shimmer Loading (Skeleton)",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = "データ取得中の待ち時間を短く感じさせるスケルトンシマー効果です。",
+                        fontSize = 12.sp,
+                        color = Color.LightGray
+                    )
+                    Spacer(modifier = Modifier.height(20.dp))
+
+                    val shimmerBrush = rememberShimmerBrush()
+
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        // Image placeholder
+                        Box(
+                            modifier = Modifier
+                                .size(50.dp)
+                                .clip(CircleShape)
+                                .background(shimmerBrush)
+                        )
+                        Spacer(modifier = Modifier.width(16.dp))
+                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            // Title line
+                            Box(
+                                modifier = Modifier
+                                    .width(160.dp)
+                                    .height(16.dp)
+                                    .clip(RoundedCornerShape(4.dp))
+                                    .background(shimmerBrush)
+                            )
+                            // Subtitle line
+                            Box(
+                                modifier = Modifier
+                                    .width(100.dp)
+                                    .height(12.dp)
+                                    .clip(RoundedCornerShape(4.dp))
+                                    .background(shimmerBrush)
+                            )
                         }
                     }
                 }

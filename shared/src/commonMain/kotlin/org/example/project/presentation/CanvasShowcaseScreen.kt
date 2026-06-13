@@ -266,6 +266,10 @@ fun CanvasShowcaseScreen(
                         )
                     )
 
+                    // Pre-allocated Path objects to prevent GC allocations in DrawScope
+                    val path = remember { Path() }
+                    val fillPath = remember { Path() }
+
                     Canvas(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -284,25 +288,23 @@ fun CanvasShowcaseScreen(
                             Offset(width, height * 0.35f)
                         )
 
-                        // Path construction
-                        val path = Path().apply {
-                            moveTo(points[0].x, points[0].y)
-                            for (i in 0 until points.size - 1) {
-                                val from = points[i]
-                                val to = points[i + 1]
-                                val ctrl1 = Offset(from.x + (to.x - from.x) / 2f, from.y)
-                                val ctrl2 = Offset(from.x + (to.x - from.x) / 2f, to.y)
-                                cubicTo(ctrl1.x, ctrl1.y, ctrl2.x, ctrl2.y, to.x, to.y)
-                            }
+                        // Path construction (Performance optimized)
+                        path.reset()
+                        path.moveTo(points[0].x, points[0].y)
+                        for (i in 0 until points.size - 1) {
+                            val from = points[i]
+                            val to = points[i + 1]
+                            val ctrl1 = Offset(from.x + (to.x - from.x) / 2f, from.y)
+                            val ctrl2 = Offset(from.x + (to.x - from.x) / 2f, to.y)
+                            path.cubicTo(ctrl1.x, ctrl1.y, ctrl2.x, ctrl2.y, to.x, to.y)
                         }
 
-                        // Gradient fill path
-                        val fillPath = Path().apply {
-                            addPath(path)
-                            lineTo(width, height)
-                            lineTo(0f, height)
-                            close()
-                        }
+                        // Gradient fill path (Performance optimized)
+                        fillPath.reset()
+                        fillPath.addPath(path)
+                        fillPath.lineTo(width, height)
+                        fillPath.lineTo(0f, height)
+                        fillPath.close()
 
                         // Draw gradient fill
                         drawPath(
